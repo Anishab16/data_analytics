@@ -1,0 +1,174 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+import numpy as np
+import pandas as pd
+from numpy.random import randn
+np.random.seed(123)
+import matplotlib.pyplot as plot
+get_ipython().run_line_magic('matplotlib', 'inline')
+import seaborn as sns
+
+
+# In[2]:
+
+
+df = pd.read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+df
+
+
+# I filtered the data based on county and state (Broward,Florida)
+
+# In[3]:
+
+
+df[(df['county']=='Broward') & (df['state']=='Florida')]
+df_1 = df[(df['county']=='Broward') & (df['state']=='Florida')]
+df_1
+
+
+# I chose the most recent month from January 14th
+
+# In[7]:
+
+
+df_1
+df_1.tail(30)
+df_2=df_1.tail(30)
+df_2
+
+
+# I created a line plot to show the number of deaths in this one month period from Dec 15, 2020- January 14,2020 in Florida. 
+
+# The number of deaths in this one month period have increased from 1750-1950.
+
+# In[73]:
+
+
+df_2.plot(kind ='line', x= 'date', y= 'deaths', figsize= (10,10))
+
+
+# The number of cases have also increased more dramatically from 125,000- 155,000. 
+
+# In[36]:
+
+
+sns.jointplot(x='date', y= 'cases', data= df_2)
+
+
+# I created a distribution plot to show the relationship between cases and deaths in Broward, Florida. 
+
+# In[91]:
+
+
+sns.pairplot(df_2)
+
+
+# The count for deaths are significantly higher on the lower and upper spectrum ranging from 1750 to 1950.
+
+# In[84]:
+
+
+sns.displot(df_2['deaths'])
+
+
+# The count for cases are higher in the lower spectrum around the 125,000-130,000 range. 
+
+# In[83]:
+
+
+sns.displot(df_2['cases'])
+
+
+# This is the data for NYC in the last one month (12-15-2020- 1-14-2021)
+
+# In[108]:
+
+
+df[(df['county']=='Westchester') & (df['state']=='New York')]
+df_3 = df[(df['county']=='Westchester') & (df['state']=='New York')]
+df_3
+
+
+# The number of deaths increased daily between 1575-1750 in Westchester for one month.
+
+# In[109]:
+
+
+df_3.plot(kind ='line', x= 'date', y= 'deaths', figsize= (10,10))
+
+
+# The relationship between the number of deaths and cases has been increasing in this one month period. 
+
+# In[110]:
+
+
+sns.pairplot(df_3)
+
+
+# The highest death toll count was between 1575-1675.  
+
+# In[111]:
+
+
+sns.displot(df_3['deaths'])
+
+
+# The highest cases count was 60,000. 
+
+# In[113]:
+
+
+sns.displot(df_3['cases'])
+
+
+# Data for San Diego California
+
+# In[99]:
+
+
+df[(df['county']=='San Diego') & (df['state']=='California')]
+df_4 = df[(df['county']=='San Diego') & (df['state']=='California')]
+df_4
+
+
+# The increase in deaths range from 1200- 2000
+
+# In[100]:
+
+
+df_4.plot(kind ='line', x= 'date', y= 'deaths', figsize= (10,10))
+
+
+# There is a positive realtionship between the number of cases and deaths. 
+
+# In[103]:
+
+
+sns.pairplot(df_4)
+
+
+# The count for death tolls was the highest for 1200. 
+
+# In[104]:
+
+
+sns.displot(df_4['deaths'])
+
+
+# The count for cases is between 120,000-200,000. 
+
+# In[114]:
+
+
+sns.displot(df_4['cases'])
+
+
+# Conclusions:
+# - The highest number of cases was in San Diego for this dataset. The cities from greatest to least are San Diego, Broward, and Westchester.
+# - The relationship between number of cases and deaths have increased significantly for all cities.
+# - The number of deaths in San Diego were lower than both Florida and Westchester in the beginning of the month, and have exceeded both cities by the end of the one month range.  
+# - The ratio between number of cases to deaths is 100 for both Broward, Florida and San Diego, California. The ratio for NYC is 114.3. 
