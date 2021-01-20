@@ -1,0 +1,359 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[74]:
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns; sns.set()
+get_ipython().run_line_magic('matplotlib', 'inline')
+sns.set_style('whitegrid')
+
+#Logistic Regression Models
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn import metrics
+
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+
+# In[ ]:
+
+
+missing_values = ['?']
+df = pd.read_csv('https://raw.githubusercontent.com/buildwelllabs/machine.learning.project/master/diabetic_data.csv',na_values = missing_values)
+df
+
+
+# In[77]:
+
+
+sns.set(rc={'axes.facecolor':'lightgrey', 'figure.facecolor':'lightgrey'},)
+
+
+# EDA
+
+# In[78]:
+
+
+sns.heatmap(df.isnull(), yticklabels=False, cbar=False, cmap='viridis')
+
+
+# The number of people who were not readmitted vs readmitted
+
+# Data Preparation
+
+# In[79]:
+
+
+sns.countplot(data=df,x=df['readmitted'],order=['NO','<30','>30'])
+
+
+# There is an increased trend in the number of diagnoses that occurred as the time in the hospital increased. There was a dip in years 10-12. 
+
+# In[80]:
+
+
+sns.boxplot(x='number_diagnoses', y='time_in_hospital', data=df,showmeans=True)
+
+
+# The older age groups are in the hospital for longer. 
+
+# In[81]:
+
+
+sns.boxplot(x='age', y='time_in_hospital', data=df,showmeans=True)
+
+
+# The time spent in the hospital and number of diagnosis are not related. 
+
+# In[82]:
+
+
+df['gender'].replace({'Unknown/Invalid': 'Female'}, regex=True,inplace=True) 
+
+
+# In[83]:
+
+
+sns.boxplot(x='gender', y='time_in_hospital', data=df,showmeans=True) #dont see a big correlation for gender.
+
+
+# In[84]:
+
+
+sns.boxplot(x='gender',y='number_diagnoses',data=df,showmeans=True)
+
+
+# In[85]:
+
+
+sns.boxplot(x='race', y='time_in_hospital', data=df,showmeans=True)
+
+
+# Dropping some columns we don't use
+
+# In[87]:
+
+
+df.drop(['encounter_id','patient_nbr','weight','payer_code','medical_specialty','diag_1','diag_2','diag_3','change'],axis=1,inplace=True) 
+
+
+# In[95]:
+
+
+df.drop(['admission_type_id','discharge_disposition_id','admission_source_id','number_outpatient','number_emergency','number_inpatient','max_glu_serum','A1Cresult','metformin','repaglinide','nateglinide'],axis=1,inplace=True)
+
+
+# In[89]:
+
+
+df2 = df.copy()
+df2.drop('gender',axis=1,inplace=True)
+
+
+# In[97]:
+
+
+df.drop(['chlorpropamide','acetohexamide', 'tolbutamide','acarbose','miglitol','troglitazone','tolazamide','examide','citoglipton','glyburide-metformin','glipizide-metformin','glimepiride-pioglitazone','metformin-rosiglitazone','metformin-pioglitazone'],axis=1,inplace=True)
+
+
+# In[98]:
+
+
+df.drop(['glimepiride','glipizide','glyburide', 'pioglitazone','rosiglitazone', 'insulin'],axis=1,inplace=True)
+
+
+# Fixing the null values in race column
+
+# In[101]:
+
+
+df['race'].fillna('Other',inplace=True) #fixing NA values in race
+
+
+# In[102]:
+
+
+df.replace({'Caucasian': '1'}, regex=True,inplace=True) #resaving the races as numeric values for comparisons
+df.replace({'AfricanAmerican': '2'}, regex=True,inplace=True)
+df.replace({'Asian': '3'}, regex=True,inplace=True)
+df.replace({'Hispanic': '4'}, regex=True,inplace=True)
+df.replace({'Other': '5'}, regex=True,inplace=True)
+
+
+# In[103]:
+
+
+df.replace({'\[0-10\)': '0'}, regex=True,inplace=True) #resaving the age as numeric values for comparisons
+df.replace({'\[10-20\)': '1'}, regex=True,inplace=True)
+df.replace({'\[20-30\)': '2'}, regex=True,inplace=True)
+df.replace({'\[30-40\)': '3'}, regex=True,inplace=True)
+df.replace({'\[40-50\)': '4'}, regex=True,inplace=True)
+df.replace({'\[50-60\)': '5'}, regex=True,inplace=True)
+df.replace({'\[60-70\)': '6'}, regex=True,inplace=True)
+df.replace({'\[70-80\)': '7'}, regex=True,inplace=True)
+df.replace({'\[80-90\)': '8'}, regex=True,inplace=True)
+df.replace({'\[90-100\)': '9'}, regex=True,inplace=True)
+
+
+# Fixing the gender column to dummy numeric values
+
+# In[104]:
+
+
+sex = pd.get_dummies(df['gender'], drop_first=True)
+df = pd.concat([df,sex ],axis=1)
+
+
+# In[105]:
+
+
+df.drop('gender',axis=1,inplace=True)
+
+
+# In[106]:
+
+
+df2.head()
+
+
+# In[ ]:
+
+
+Fixing diabetes medication to dummy numeric values
+
+
+# In[107]:
+
+
+diabmed = pd.get_dummies(df['diabetesMed'], drop_first=True)
+df = pd.concat([df,diabmed ],axis=1)
+df.drop('diabetesMed',axis=1,inplace=True)
+df.rename(columns={'Yes':'Diabetes Med'},inplace=True)
+
+
+# In[108]:
+
+
+df
+
+
+# Changing readmission column to numeric values
+
+# In[109]:
+
+
+df.replace({'NO': '0'}, regex=True,inplace=True) #resaving the age as numeric values for comparisons
+df.replace({'<30': '1'}, regex=True,inplace=True)
+df.replace({'>30': '0'}, regex=True,inplace=True)
+df.head()
+
+
+# summary
+
+# In[110]:
+
+
+for column in df:
+  pd.to_numeric(df[column])
+  print (df[column].dtype)
+
+
+# In[111]:
+
+
+df2['age'] = df['age']
+df2.drop('race',axis=1,inplace=True)
+#df2['race'] = df['race']
+df2['readmitted'] = df['readmitted']
+df2['diabetesMed'] = df['Diabetes Med']
+df2.head()
+
+
+# In[112]:
+
+
+df2.replace({'No': '0'}, regex=True,inplace=True) #if their insulin isnt a problem today, it might not be a problem within 30 days
+df2.replace({'Steady': '0'}, regex=True,inplace=True)
+df2.replace({'Down': '1'}, regex=True,inplace=True)
+df2.replace({'Up': '1'}, regex=True,inplace=True)
+
+
+# In[113]:
+
+
+for column in df2:
+  pd.to_numeric(df2[column])
+  print (df2[column].dtype)
+
+
+# Logistic Regression
+
+# In[114]:
+
+
+ds = df
+ds2 = df2
+
+
+# Test with df 
+
+# In[115]:
+
+
+x = ds.drop('readmitted',axis=1)
+y = ds['readmitted']
+
+
+# Model Building
+
+# In[116]:
+
+
+X_train, X_test, y_train, y_test = train_test_split(x,y,test_size=0.25, random_state=101) 
+
+
+# In[ ]:
+
+
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+
+# In[117]:
+
+
+logmodel = LogisticRegression(class_weight='balanced')
+
+
+# In[118]:
+
+
+logmodel.fit(X_train, y_train)
+
+
+# In[119]:
+
+
+predict = logmodel.predict(X_test)
+
+
+# Classifaction report
+
+# In[120]:
+
+
+print(classification_report(y_test,predict))
+
+
+# In[121]:
+
+
+print(confusion_matrix(y_test, predict))
+
+
+# In[122]:
+
+
+metrics.plot_roc_curve(logmodel, X_test, y_test)  
+
+
+# Confusion Matrix
+
+# In[129]:
+
+
+plt.figure(figsize=(9,9))
+sns.heatmap(confusion_matrix(y_test, predict), annot=True, fmt=".3f", linewidths=.5, square = True, cmap = 'Blues_r');
+plt.ylabel('Actual label');
+plt.xlabel('Predicted label');
+all_sample_title = 'Accuracy Score: {0}'.format(logmodel.score(X_test, y_test))
+plt.title(all_sample_title, size = 15);
+
+
+# In[123]:
+
+
+ds.head()
+
+
+# In[130]:
+
+
+metrics.plot_roc_curve(logmodel, X_test, y_test)  
+
+
+# In[128]:
+
+
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
